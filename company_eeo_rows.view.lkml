@@ -70,8 +70,14 @@ view: company_eeo {
     sql: ${TABLE}.year ;;
   }
 
-  measure: count {
+  measure: row_count {
     type: count
+    drill_fields: [id, company_name]
+  }
+
+  measure:  employee_total {
+    type: sum
+    sql: ${total};;
     drill_fields: [id, company_name]
   }
 }
