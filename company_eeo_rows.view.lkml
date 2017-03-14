@@ -12,6 +12,12 @@ view: company_eeo {
     sql: ${TABLE}.companyName ;;
   }
 
+  dimension: company_name_year {
+    description: "Provide the company name and year as a dimension"
+    type: string
+    sql: CONCAT(${year}, ' ', ${TABLE}.companyName) ;;
+  }
+
   dimension_group: created {
     type: time
     timeframes: [
