@@ -14,6 +14,8 @@ explore: sequelize_meta {}
 
 explore: sessions {}
 
+explore: company_eeo {}
+
 explore: user_organizations {
   join: users {
     type: left_outer
