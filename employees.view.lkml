@@ -41,6 +41,11 @@ view: employees {
     sql: ${TABLE}.eeoEthnicCode ;;
   }
 
+  dimension: ethnicity {
+    type: string
+    sql: ${TABLE}.ethnicity ;;
+  }
+
   dimension: eeo_ethnic_description {
     type: string
     sql: ${TABLE}.eeoEthnicDescription ;;
