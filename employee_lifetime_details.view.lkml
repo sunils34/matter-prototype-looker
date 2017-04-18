@@ -67,6 +67,13 @@ view: employee_lifetime_details {
     sql: ${employee_id} ;;
   }
 
+  dimension: tenure_buckets {
+    description: "Tenure buckets by number of months at company"
+    type: tier
+    tiers: [0, 6, 12, 24, 36, 60]
+    sql: ${tenure_months} ;;
+  }
+
   # # You can specify the table name if it's different from the view name:
   # sql_table_name: my_schema_name.tester ;;
   #
