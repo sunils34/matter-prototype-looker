@@ -1,17 +1,18 @@
 view: employee_lifetime_details {
   derived_table: {
     sql: SELECT
-      employeeId as employee_id,
+      e.employeeId as employee_id,
       COUNT(*) as event_count,
       (select eventDate from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='HIR') as hire_date,
       (select ethnicity from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='HIR') as ethnicity,
       (select gender from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='HIR') as gender,
       (select department from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='HIR') as department,
-      (select eventDate from employeeEvents e2 where e2.employeeId=e.employeeId AND eventType IN ('TER', 'RET')) as termination_date
-      (select eventDate from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='PRO' ORDER BY eventDate ASC LIMIT 1) as first_promotion_date,
-      (select count(*) from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='PRO' ORDER BY eventDate ASC LIMIT 1) as number_of_promotions,
-      FROM employeeEvents e
-      GROUP BY employeeId
+      (select eventDate from employeeEvents e2 where e2.employeeId=e.employeeId AND eventType IN ('TER', 'RET')) as termination_date,
+      MIN(e2.eventDate) as first_promotion_date,
+      count(e2.eventDate) as number_of_promotions
+      FROM employeeEvents e LEFT JOIN employeeEvents e2
+        ON e.employeeId=e2.employeeId AND e2.eventType='PRO'
+      GROUP BY e.employeeId
        ;;
    }
 
@@ -39,21 +40,27 @@ view: employee_lifetime_details {
     sql: ${TABLE}.ethnicity ;;
   }
 
-  dimension: hire_date {
+  dimension_group: hire_date {
    description: "Date of Hire"
-    type: date
+    type: time
+    datatype: datetime
+    timeframes: [date, year, quarter, month]
     sql: ${TABLE}.hire_date ;;
   }
 
-  dimension: termination_date {
+  dimension_group: termination_date {
     description: "Termination Date"
-    type: date
+    type: time
+    datatype: datetime
+    timeframes: [date, year, quarter, month]
     sql: ${TABLE}.termination_date ;;
   }
 
-  dimension: first_promotion_date {
+  dimension_group: first_promotion_date {
     description: "Date before first promotion"
-    type: date
+    type: time
+    datatype: datetime
+    timeframes: [date, year, quarter, month]
     sql: ${TABLE}.first_promotion_date ;;
   }
 
@@ -72,13 +79,7 @@ view: employee_lifetime_details {
   dimension: tenure_months {
     description: "Number of months available"
     type: number
-    sql: TIMESTAMPDIFF(month, ${hire_date}, COALESCE(${termination_date}, NOW()))  ;;
-  }
-
-  measure: employee_count  {
-    description: "Number of employees"
-    type: count_distinct
-    sql: ${employee_id} ;;
+    sql: DATE_DIFF(IFNULL(${termination_date_date}, CURRENT_DATE()), ${hire_date_date}, month)  ;;
   }
 
   dimension: tenure_buckets {
@@ -86,6 +87,26 @@ view: employee_lifetime_details {
     type: tier
     tiers: [0, 6, 12, 24, 36, 60]
     sql: ${tenure_months} ;;
+  }
+
+  dimension: time_to_first_promotion {
+    description: "Time to first promotion in months"
+    type: number
+    sql: DATE_DIFF(${first_promotion_date_date}, ${hire_date_date}, month) ;;
+  }
+
+  dimension: time_to_first_promotion_buckets {
+    description: "Tenure buckets by number of months at company"
+    type: tier
+    tiers: [0, 12, 24, 36, 48, 60]
+    sql: ${time_to_first_promotion} ;;
+  }
+
+  measure: employee_count  {
+    description: "Number of employees"
+    type: count_distinct
+    sql: ${employee_id} ;;
+    drill_fields: [employee_id, department, gender, ethnicity, hire_date_date, termination_date_date, first_promotion_date_date]
   }
 
   # # You can specify the table name if it's different from the view name:
