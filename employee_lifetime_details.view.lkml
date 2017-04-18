@@ -9,6 +9,7 @@ view: employee_lifetime_details {
       (select department from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='HIR') as department,
       (select eventDate from employeeEvents e2 where e2.employeeId=e.employeeId AND eventType IN ('TER', 'RET')) as termination_date
       (select eventDate from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='PRO' ORDER BY eventDate ASC LIMIT 1) as first_promotion_date,
+      (select count(*) from employeeEvents e1 where e1.employeeId=e.employeeId AND eventType='PRO' ORDER BY eventDate ASC LIMIT 1) as number_of_promotions,
       FROM employeeEvents e
       GROUP BY employeeId
        ;;
@@ -54,6 +55,12 @@ view: employee_lifetime_details {
     description: "Date before first promotion"
     type: date
     sql: ${TABLE}.first_promotion_date ;;
+  }
+
+  dimension: number_of_promotions {
+    description: "Date before first promotion"
+    type: number
+    sql: ${TABLE}.number_of_promotions ;;
   }
 
   dimension: department {
