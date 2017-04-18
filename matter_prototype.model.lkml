@@ -16,6 +16,10 @@ explore: sessions {}
 
 explore: company_eeo {}
 
+explore:  employee_events {}
+
+explore:  employee_lifetime_details {}
+
 explore: user_organizations {
   join: users {
     type: left_outer
